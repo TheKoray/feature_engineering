@@ -16,11 +16,6 @@ data = pd.read_csv('titanic.csv', usecols=['age','fare','survived'])
 
 ky = feature(data,'age')
 
+dagılım = ky.feature_dist(dagılım='Normal',distance=3, low_up='up')
 
-#ky.feature_mean()
-
-#print(ky.missing_feature())
-
-print(ky.feature_median())
-
-#print(ky.feature_dist(dagılım='normal',low_up='up'))
+print(dagılım)
