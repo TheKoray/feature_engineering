@@ -18,17 +18,21 @@ data = pd.read_csv('titanic.csv', usecols=['age','fare','survived'])
 
 ky = feature(data,'age')
 
-# mean imputation for missing_values
-ky.feature_mean()
+# mean imputation for missing values
+#ky.feature_mean()
 
-# mode imputation for missing_values
-ky.feature_mod()
+# mode imputation for missing values
+#ky.feature_mod()
 
-# median imputation for missing_values
-ky.feature_median()
+# median imputation for missing values
+#ky.feature_median()
 
 # missing indicatory create new feature
-ky.missing_feature()
+ky.missing_feature(nan_cols = ['age'])
+
+# arbitary value imputation for missing values
+#ky.arbitary_value(value = 20)
 
 #according to  feature distribution value impututation for missing values 
-ky.feature_dist(dagılım='normal',distance=3, low_up='up')
+#ky.feature_dist(dagılım ='normal',distance=3, low_up='up')
+
