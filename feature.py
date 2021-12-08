@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class feature():
 
     def __init__(self,df,variable):
@@ -50,14 +49,25 @@ class feature():
             value,
             self.df[self.variable]
         )
-
         return self.df[self.variable].isnull().mean()
 
-    def missing_feature(self):
-      
-      self.df['missing_indicator'] = np.where(self.df[self.variable].isnull(),1,0)
+    def missing_feature(self,nan_cols):
 
-      return self.df[[self.variable, 'missing_indicator']]
+        if len(nan_cols) > 1:
+
+            for cols in nan_cols:
+                
+              self.df[cols + '_nan'] = np.where(
+              self.df[cols].isnull(),1,0)
+
+            miss_id = [cols for cols in self.df.columns if 'nan' in cols]
+            
+            return self.df[miss_id]
+        
+        else:
+            self.df['missing_indicator'] = np.where(self.df[self.variable].isnull(),1,0)
+
+            return self.df[[self.variable,'missing_indicator']]
 
     def feature_dist(self, dagılım, distance = 3, low_up = 'up'):
 
@@ -65,7 +75,6 @@ class feature():
 
             mean = self.df[self.variable].mean()
             std = self.df[self.variable].std()
-
             result = np.add(mean, np.multiply(3,std))
 
             self.df[self.variable] = np.where(
@@ -77,7 +86,6 @@ class feature():
 
             Q1 = self.df[self.variable].quantile(0.25)
             Q3 = self.df[self.variable].quantile(0.75)
-
             IQR = distance * (Q3 - Q1)
 
             lower = Q1 - IQR
@@ -98,6 +106,8 @@ class feature():
                     upper,
                     self.df[self.variable]
                 )
+        else:
+           print("Please enter correct parameters!")
 
         return self.df[self.variable].isnull().mean()
 
