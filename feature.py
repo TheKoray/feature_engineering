@@ -59,7 +59,6 @@ class feature():
                 
               self.df[cols + '_nan'] = np.where(
               self.df[cols].isnull(),1,0)
-
             miss_id = [cols for cols in self.df.columns if 'nan' in cols]
             
             return self.df[miss_id]
@@ -108,7 +107,46 @@ class feature():
                 )
         else:
            print("Please enter correct parameters!")
-
         return self.df[self.variable].isnull().mean()
+    
+    def category_feature(self, plot = False):
+        """
+        - Kategorik değişkenlerdeki eksik değerlerimizi 'eksik' adında değeri atayacağız.
+        """
+        if self.df[self.variable].dtypes == 'object':
+            self.df[self.variable] = np.where(
+                self.df[self.variable].isnull(),
+                'Eksik',
+                self.df[self.variable]
+            )
+            return self.df[self.variable].isnull().mean()
+        else:
+            print(f"{self.variable} değişkenin tipi 'object' değildir!")
+        
+        if plot == True:
 
-      
+            print(self.df[self.variable].value_counts().plot.bar())
+
+    def OneHotEncoder(self, cols, drop_cols = False):
+
+        value = self.df[cols].unique()
+        
+        for i in value:
+
+            self.df[i] = np.where(
+                self.df[cols].isin([i]),1,0
+            )
+
+        if drop_cols == True:
+
+            self.df.drop(i, axis=1, inplace = True)
+        
+        return self.df
+        
+
+
+
+
+
+
+        
