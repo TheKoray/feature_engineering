@@ -49,6 +49,8 @@ class feature():
             value,
             self.df[self.variable]
         )
+        print(f"Missing Values fill {value}")
+
         return self.df[self.variable].isnull().mean()
 
     def missing_feature(self,nan_cols):
@@ -114,12 +116,16 @@ class feature():
         - Kategorik değişkenlerdeki eksik değerlerimizi 'eksik' adında değeri atayacağız.
         """
         if self.df[self.variable].dtypes == 'object':
+
             self.df[self.variable] = np.where(
+
                 self.df[self.variable].isnull(),
                 'Eksik',
                 self.df[self.variable]
+
             )
             return self.df[self.variable].isnull().mean()
+            
         else:
             print(f"{self.variable} değişkenin tipi 'object' değildir!")
         
@@ -134,6 +140,7 @@ class feature():
         for i in value:
 
             self.df[i] = np.where(
+
                 self.df[cols].isin([i]),1,0
             )
 
@@ -141,6 +148,22 @@ class feature():
 
             self.df.drop(i, axis=1, inplace = True)
         
+        return self.df
+    
+    def LabelEncoder(self,cols):
+
+        value = self.df[cols].unique()
+
+        count = 0
+
+        for i in value:
+
+            self.df[cols] = np.where(self.df[cols] == i, 
+                count,
+                self.df[cols]
+            )
+            count +=1
+
         return self.df
         
 
