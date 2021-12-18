@@ -5,16 +5,15 @@ class feature():
     def __init__(self,df,variable):
 
         self.df = df
-        self.variable = variable
+        self.variable = variable 
 
     def feature_zero(self):
 
         self.df[self.variable] = np.where(
-            self.df[self.variable].isnull(),
-            0,
+            self.df[self.variable].isnull(),0,
             self.df[self.variable]
         )
-        return self.df[self.variable].mean()
+        return self.df[self.variable].isnull().mean()
 
     def feature_mean(self):
 
@@ -124,6 +123,7 @@ class feature():
         """
         - Kategorik değişkenlerdeki eksik değerlerimizi 'eksik' adında değeri atayacağız.
         """
+
         if self.df[self.variable].dtypes == 'object':
 
             self.df[self.variable] = np.where(
@@ -183,19 +183,23 @@ class feature():
 
         """
 
+        "cols = self.variable"
+
         top_10 = self.df[cols].value_counts().sort_values(ascending = False).head(int(number)).index
         
         top_10 = [i for i in top_10]
 
         if show_top10: #Değişkenin top 10 değerlerini görmek istersek.
 
-            print(top_10)
+            print(f" {cols} Değişkenin top 10 değerleri : \n{top_10}")
 
         for value in top_10:
 
             self.df[cols + '_' + value] = np.where(
                 self.df[cols ] == value, 1, 0
             )
+
+        return self.df[[cols] + [cols + '_' + i for i in top_10]].head(10)
         
 
 
