@@ -7,6 +7,15 @@ class feature():
         self.df = df
         self.variable = variable
 
+    def feature_zero(self):
+
+        self.df[self.variable] = np.where(
+            self.df[self.variable].isnull(),
+            0,
+            self.df[self.variable]
+        )
+        return self.df[self.variable].mean()
+
     def feature_mean(self):
 
         mean = self.df[self.variable].mean()
@@ -165,7 +174,40 @@ class feature():
             count +=1
 
         return self.df
+
+    def top_features_ohe(self,cols, number = 10 ,show_top10 = False):
+
+        """
+        - Kategorik Değişkenimizin değerlerinin top 10 değerlerini alacağız.
+        - Bu değerlere One hot encoding uygulayacağız.
+
+        """
+
+        top_10 = self.df[cols].value_counts().sort_values(ascending = False).head(int(number)).index
         
+        top_10 = [i for i in top_10]
+
+        if show_top10: #Değişkenin top 10 değerlerini görmek istersek.
+
+            print(top_10)
+
+        for value in top_10:
+
+            self.df[cols + '_' + value] = np.where(
+                self.df[cols ] == value, 1, 0
+            )
+        
+
+
+        
+
+
+
+        
+
+
+
+
 
 
 
