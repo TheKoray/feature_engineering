@@ -180,7 +180,6 @@ class feature():
         """
         - Kategorik Değişkenimizin değerlerinin top 10 değerlerini alacağız.
         - Bu değerlere One hot encoding uygulayacağız.
-
         """
 
         "cols = self.variable"
@@ -200,7 +199,32 @@ class feature():
             )
 
         return self.df[[cols] + [cols + '_' + i for i in top_10]].head(10)
+
+    def ordinary_encoding(self, cols ,show_dict = False):
+
+        """
+        - Datamızın kategorik değişkenlerinin değerlerini numaralandırıyoruz.
+        - O numalaralar ile o değişken değerlerini değiştiriyoruz.
+        - LabelEncoder() işlemi gibi aslında.
+        """
         
+        cols = self.variable
+
+        ordinal_map = {v:k
+            for k,v in enumerate(self.df[cols].unique(),0)
+        }
+        
+        self.df[self.variable] = self.df[cols].map(ordinal_map)
+
+        if show_dict:
+
+            print(ordinal_map)
+
+        
+        
+        
+
+
 
 
         
