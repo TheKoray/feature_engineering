@@ -220,7 +220,40 @@ class feature():
 
             print(ordinal_map)
 
+    def encoding(self, cols, how):
+
+        """
+        - Kategorik değişkenimizin etiketlerini sayısal değerlerle,
+        - Kategorik değişkenimizin etiketlerini frekans değerleriyle
+        değiştirebiliriz.
+        - how = Etiktlerini ne ile değiştirmek istiyorsak onun bilgisini veririz.
+           - number or frequnecy
+        """
+
+        if how == 'number':
+
+            ordinal_map = {
+
+                v:k
+                for k,v in enumerate(self.df[cols].unique())
+            }
+            
+            self.df[cols] = self.df[cols].map(ordinal_map)
+
+        elif how == 'frequency':
+
+            frekans = (self.df[cols].value_counts() / len(self.df)).to_dict()
+
+            self.df[cols] = self.df[cols].map(frekans)
         
+        else :
+
+            print("Please Enter Correct Parameter!")
+
+        
+        
+
+
         
         
 
