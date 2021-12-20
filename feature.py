@@ -206,6 +206,10 @@ class feature():
         - Datamızın kategorik değişkenlerinin değerlerini numaralandırıyoruz.
         - O numalaralar ile o değişken değerlerini değiştiriyoruz.
         - LabelEncoder() işlemi gibi aslında.
+        - show_dict = Etiketleri değiştireceğimiz sayısal değerleri görmemizi sağlar
+
+          - False = Default değeridir.
+          - True = Sayısal değerleri gösterir.
         """
         
         cols = self.variable
@@ -227,7 +231,8 @@ class feature():
         - Kategorik değişkenimizin etiketlerini frekans değerleriyle
         değiştirebiliriz.
         - how = Etiktlerini ne ile değiştirmek istiyorsak onun bilgisini veririz.
-           - number or frequnecy
+           - number = Sayısal Değerler için
+           - frequency = Frekans Değerler için
         """
 
         if how == 'number':
