@@ -8,4 +8,4 @@
 - Random Value Imputation 
 - NaN Values capture add missing feature
 
-## Encoding
+## For Categories Features
