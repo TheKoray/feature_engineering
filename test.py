@@ -13,13 +13,21 @@ data.to_csv('titanic.csv',index = False)
 #%% 
 import pandas as pd
 
-data = pd.read_csv('titanic.csv', usecols= ['age','fare','survived','cabin'])
+data = pd.read_csv('titanic.csv', usecols= ['age','fare','survived','cabin','embarked'])
 
-data_house = pd.read_csv('house.csv',usecols= ['Neighborhood','Exterior1st', 'Exterior2nd', 'SalePrice'])
+data['cabin'] = data['cabin'].astype("str").str[0]
+
+data = data[data['cabin']!= 'T']
+
+data.dropna(subset=['embarked'], inplace=True)
+
+data_house = pd.read_csv('house.csv',usecols= ['Neighborhood','Exterior1st', 'Exterior2nd', 'BsmtQual' ,'SalePrice'])
+
 
 ky = feature(data,'age')
 
-print(ky.feature_zero())
+
+#print(ky.feature_zero())
 
 # mean imputation for missing values
 #ky.feature_mean()
@@ -39,13 +47,22 @@ print(ky.feature_zero())
 #according to  feature distribution value impututation for missing values 
 #ky.feature_dist(dagılım ='normal',distance=3, low_up='up')
 
-#ky.category_feature(data,'age', plot = True)
+#ky.prob_ratio_encoding(cols = "cabin",target = "survived")
 
-print(data_house.head())
+ky.mean_target_encoding(cols = 'cabin', target = 'survived')
 
-ky_house = feature(data_house, 'Neighborhood')
+print(data.head())
 
-ohe_top = ky_house.top_features_ohe(cols = 'Neighborhood', number=10,show_top10=True)
+#print(data_house.head())
 
-print(ohe_top)
-print(data_house)
+#ky_house = feature(data_house, 'Neighborhood')
+
+#print(ky_house.category_feature(data,'BsmtQual', plt = True))
+
+#ohe_top = ky_house.top_features_ohe(cols = 'Neighborhood', number=10,show_top10=True)
+
+#ky_house.ordinary_encoding(cols= 'Neighborhood', show_dict= True)
+
+#print(ky_house.encoding(cols = 'Neighborhood', how = 'frequency'))
+
+#print(data_house.head())

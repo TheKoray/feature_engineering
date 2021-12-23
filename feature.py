@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd 
 
 class feature():
 
@@ -119,7 +120,7 @@ class feature():
            print("Please enter correct parameters!")
         return self.df[self.variable].isnull().mean()
     
-    def category_feature(self, plot = False):
+    def category_feature(self, plt = False):
         """
         - Kategorik değişkenlerdeki eksik değerlerimizi 'eksik' adında değeri atayacağız.
         """
@@ -138,9 +139,9 @@ class feature():
         else:
             print(f"{self.variable} değişkenin tipi 'object' değildir!")
         
-        if plot == True:
+        if plt == True:
 
-            print(self.df[self.variable].value_counts().plot.bar())
+            return self.df[self.variable].value_counts().plot.bar()
 
     def OneHotEncoder(self, cols, drop_cols = False):
 
@@ -208,7 +209,7 @@ class feature():
         - LabelEncoder() işlemi gibi aslında.
         - show_dict = Etiketleri değiştireceğimiz sayısal değerleri görmemizi sağlar
 
-          - False = Default değeridir.
+          - False = Sayısal değerleri göstermez. Default değeridir.
           - True = Sayısal değerleri gösterir.
         """
         
@@ -255,6 +256,46 @@ class feature():
 
             print("Please Enter Correct Parameter!")
 
+    def mean_target_encoding(self,cols,target):
+
+        """
+        - Kategorinin değerleri için ortalama hedef değerle değiştirilmesi anlamına gelir.
+        - target = Veri Setinde ki Hedef Değişkenimiz.
+        """
+        ordered = self.df.groupby(cols)[target].mean().to_dict()
+
+        self.df[cols] = self.df[cols].map(ordered)
+
+    def prob_ratio_encoding(self,cols,target):
+
+        """
+        - Bu kodlama yalnızca target değişkeninin binary olduğu durumlarda gerçekleşir.
+        - Her değer için P(1) ve P(0) değerleri hesaplanır.
+        - P(1) / P(0) ile dolduruz.
+        - target = Veri Setinde ki hedef değişkenimiz.Değerleri "Binary" olmak zorunda.
+        """
+
+        #Target 1 olma olasılığı 
+        prob_df = pd.DataFrame(self.df.groupby(cols)[target].mean())
+
+        #target 0 olma olasılığı
+        prob_df['zero'] = 1 - prob_df[target]
+        
+        #Olasılık Oran Değerleri
+        prob_df['ratio'] = prob_df[target] / prob_df['zero']
+
+        #Olasılık oran değerlerini dictionary haline çeviriyoruz.
+        prob_ratio = prob_df['ratio'].to_dict()
+        
+        self.df[cols] = self.df[cols].map(prob_ratio)
+
+
+
+
+
+
+         
+        
         
         
 
