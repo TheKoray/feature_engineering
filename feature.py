@@ -120,9 +120,10 @@ class feature():
            print("Please enter correct parameters!")
         return self.df[self.variable].isnull().mean()
     
-    def category_feature(self, plt = False):
+    def category_feature(self, plot = False):
         """
         - Kategorik değişkenlerdeki eksik değerlerimizi 'eksik' adında değeri atayacağız.
+        - NaN --> 'Eksik'
         """
 
         if self.df[self.variable].dtypes == 'object':
@@ -139,9 +140,24 @@ class feature():
         else:
             print(f"{self.variable} değişkenin tipi 'object' değildir!")
         
-        if plt == True:
+        if plot:
 
-            return self.df[self.variable].value_counts().plot.bar()
+            return self.df[self.variable].value_counts().plot().bar()
+
+
+    def random_sample(self,cols):
+        
+        self.df[cols + '_imputed'] = self.df[cols].copy()
+
+        random_sample = self.df[cols].dropna().sample(self.df[cols].isnull().sum(),random_state = 0)
+
+        random_sample.index = self.df[self.df[cols].isnull()].index
+        
+        self.df.loc[self.df[cols].isnull(), [cols + '_imputed']] = random_sample
+
+        return self.df[[cols, cols + '_imputed']]
+
+    "----------------- Encoding İşlemleri --------------------------"
 
     def OneHotEncoder(self, cols, drop_cols = False):
 

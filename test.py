@@ -27,6 +27,8 @@ data_house = pd.read_csv('house.csv',usecols= ['Neighborhood','Exterior1st', 'Ex
 ky = feature(data,'age')
 
 
+print(ky.random_sample(cols = 'age'))
+
 #print(ky.feature_zero())
 
 # mean imputation for missing values
@@ -49,15 +51,15 @@ ky = feature(data,'age')
 
 #ky.prob_ratio_encoding(cols = "cabin",target = "survived")
 
-ky.mean_target_encoding(cols = 'cabin', target = 'survived')
+#ky.mean_target_encoding(cols = 'cabin', target = 'survived')
 
-print(data.head())
+#print(data.head())
 
 #print(data_house.head())
 
-#ky_house = feature(data_house, 'Neighborhood')
+ky_house = feature(data_house, 'Neighborhood')
 
-#print(ky_house.category_feature(data,'BsmtQual', plt = True))
+#print(ky_house.category_feature(data,'BsmtQual', plot = True))
 
 #ohe_top = ky_house.top_features_ohe(cols = 'Neighborhood', number=10,show_top10=True)
 
