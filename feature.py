@@ -305,6 +305,21 @@ class feature():
         
         self.df[cols] = self.df[cols].map(prob_ratio)
 
+    def rare_encoding(self,cols,tolerance):
+
+        temp_df = pd.Series(self.df[cols].value_counts() / len(self.df))
+
+        rare_labels = temp_df[temp_df < tolerance].index.tolist()
+
+        for value in rare_labels:
+
+            self.df[cols] = np.where(self.df[cols].isin([value]), 'rare', self.df[cols])
+
+        return self.df[cols]
+
+
+
+
 
 
 
