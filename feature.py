@@ -157,7 +157,7 @@ class feature():
 
         return self.df[[cols, cols + '_imputed']]
 
-    "----------------- Encoding İşlemleri --------------------------"
+    "------------------------------ Encoding İşlemleri ----------------------------------------------"
 
     def OneHotEncoder(self, cols, drop_cols = False):
 
@@ -305,7 +305,7 @@ class feature():
         
         self.df[cols] = self.df[cols].map(prob_ratio)
 
-    def rare_encoding(self,cols,tolerance):
+    def rare_encoding(self,cols,tolerance,plot = False):
 
         temp_df = pd.Series(self.df[cols].value_counts() / len(self.df))
 
@@ -315,41 +315,16 @@ class feature():
 
             self.df[cols] = np.where(self.df[cols].isin([value]), 'rare', self.df[cols])
 
+        if plot:
+
+            fig = self.df[cols].value_counts() / len(self.df).plot.bar()
+
+            fig.set_xlabel(cols)
+            fig.set_axhline(y = 0.05, color = 'red')
+            plt.show()
+
         return self.df[cols]
 
+    "------------------------------ Normal Dağılım Dönüşümü -------------------------------------------"
 
-
-
-
-
-
-
-
-         
-        
-        
-        
-
-
-        
-        
-
-
-
-
-        
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
-        
+    
