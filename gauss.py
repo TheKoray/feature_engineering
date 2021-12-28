@@ -29,4 +29,13 @@ class gauss():
 
         return df[[cols,cols + '_squareRoot']]
     
+    def Exponential(self,df,cols):
+
+        df[cols + '_exp'] = df[cols] ** (1/1.5)
+
+        return df[[cols, cols + '_exp']]
+    
+    
+
+    
 
