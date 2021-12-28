@@ -321,7 +321,7 @@ class feature():
 
             fig.set_xlabel(cols)
             fig.set_axhline(y = 0.05, color = 'red')
-            plt.show()
+            
 
         return self.df[cols]
 
