@@ -1,5 +1,5 @@
 import numpy as np
-import pandas as pd 
+import pandas as pd
 
 class feature():
 
@@ -324,7 +324,29 @@ class feature():
             
 
         return self.df[cols]
-
-    "------------------------------ Normal Dağılım Dönüşümü -------------------------------------------"
-
     
+    def Outliers_Trimming(self,variable, distance):
+
+        """
+        - variable = Değişken İsmi. 
+        - distance = Aykırı değerler için alt ve üst sınır değerleri elde ederken ki değerimiz.
+           - IQR = distance * (Q3 - Q1)    
+        """ 
+
+        Q1 = self.df[variable].quantile(0.25)
+        Q3 = self.df[variable].quantile(0.75)
+
+        IQR = distance * (Q3 - Q1)
+
+        lower = Q1 - IQR
+        upper = Q3 + IQR
+
+        self.df[variable] = np.where(self.df[variable] < lower , True,
+                            np.where(self.df[variable] > upper, True, False))
+
+        return self.df[variable]
+
+
+
+
+
