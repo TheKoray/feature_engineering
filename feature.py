@@ -324,6 +324,8 @@ class feature():
             
 
         return self.df[cols]
+
+    "------------------------ Aykırı Değer İşlemleri --------------------------------------"
     
     def Outliers_Trimming(self,variable, distance):
 
@@ -345,6 +347,42 @@ class feature():
                             np.where(self.df[variable] > upper, True, False))
 
         return self.df[variable]
+
+    
+    def Outliers_Censoring(self, variable, distance, arbitary = 0):
+
+        """
+        - arbitary = Değişkenimizde ki aykırı değerleri değiştirmek istediğimiz değer.
+           - default olarak 0'dır.Eğer 0'dan farklı değer girilirse bu değer ile değiştirelecektir.
+        - arbitary = 0 olursa yani biz değer vermezsek;
+           - alt aykırı değerleri, alt sınır değeri ile
+           - üst aykırı değerleri, üst sınır değeri ile değiştirecektir.
+        """
+
+
+        Q1 = self.df[variable].quantile(0.25)
+        Q3 = self.df[variable].quantile(0.75)
+
+        IQR = distance * (Q3 - Q1)
+
+        lower = Q1 - IQR
+        upper = Q3 + IQR
+
+        if arbitary != 0 :
+
+            self.df[variable] = np.where(self.df[variable] < lower, arbitary,
+                            np.where(self.df[variable] > upper,arbitary,self.df[variable]))
+
+        else:
+
+            self.df[variable] = np.where(self.df[variable] < lower, lower,
+                            np.where(self.df[variable] > upper, upper, self.df[variable]))
+
+        return self.df[variable]
+
+
+     
+
 
 
 
