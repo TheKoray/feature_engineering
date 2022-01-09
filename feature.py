@@ -359,7 +359,6 @@ class feature():
            - üst aykırı değerleri, üst sınır değeri ile değiştirecektir.
         """
 
-
         Q1 = self.df[variable].quantile(0.25)
         Q3 = self.df[variable].quantile(0.75)
 
@@ -379,7 +378,19 @@ class feature():
                             np.where(self.df[variable] > upper, upper, self.df[variable]))
 
         return self.df[variable]
+    
+    def Outliers_Gauss(self, variable, distance = 3):
 
+        lower = self.df[variable].mean() - distance * self.df[variable].std()
+
+        upper = self.df[variable].mean() + distance * self.df[variable].std()
+
+        self.df[variable] = np.where(self.df[variable] < lower, lower,
+                            np.where(self.df[variable] > upper, upper, self.df[variable]))
+
+        return self.df[variable]
+
+        
 
      
 
