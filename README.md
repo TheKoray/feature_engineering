@@ -17,3 +17,6 @@
 - Frequency Encoding   
 - Mean Target Encoding 
 - Probility Ratio Encoding
+
+## Outliers Engineering
+- Censoring or Capping
