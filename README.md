@@ -18,5 +18,7 @@
 - Mean Target Encoding 
 - Probility Ratio Encoding
 
+## Rare Categories Engineering
+
 ## Outliers Engineering
 - Censoring or Capping
