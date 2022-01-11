@@ -22,3 +22,7 @@
 
 ## Outliers Engineering
 - Censoring or Capping
+
+## Feature Scaling 
+
+- Standardisation
