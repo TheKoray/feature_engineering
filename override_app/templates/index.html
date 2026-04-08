@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Genel Görünüm — Override Dashboard{% endblock %}
+{% block page_title %}Genel Görünüm{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-title">Rapor Bilgileri</div>
+  <table style="font-size:13px;line-height:2;width:100%;">
+    <tr><td style="color:#6b7280;width:200px;">Rapor Sahibi</td><td><strong>Kurumsal Krediler Model Geliştirme</strong></td></tr>
+    <tr><td style="color:#6b7280;">Mail</td><td>KurumsalKredilerModelleme@denizbank.com</td></tr>
+    <tr><td style="color:#6b7280;">Amaç</td><td>Override işlemlerinin izlenmesi ve kontrolü</td></tr>
+    <tr><td style="color:#6b7280;">Kapsam</td><td>Müşteri, grup ve bölge bazlı analiz</td></tr>
+    <tr><td style="color:#6b7280;">Sıklık</td><td>Günlük</td></tr>
+    <tr><td style="color:#6b7280;">Tarih</td><td>{{ run_date }}</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title">Ana İzleme Göstergeleri</div>
+  <ul style="font-size:13px;line-height:2;padding-left:18px;color:#f1f5f9;font-weight:700;">
+    <li>Toplam akış sayısı</li>
+    <li>Override oranı</li>
+    <li>Notch bazlı değişim</li>
+    <li>Trend</li>
+    <li>İyileştirici / kötüleştirici dağılım</li>
+  </ul>
+</div>
+{% endblock %}

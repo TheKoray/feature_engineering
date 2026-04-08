@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Override Dashboard{% endblock %}</title>
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.32.0/plotly.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────── */
+    #sidebar {
+      width: 200px;
+      min-width: 200px;
+      background: #1e293b;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      flex-shrink: 0;
+    }
+
+    .sb-logo {
+      padding: 18px 14px 14px;
+      border-bottom: 1px solid #334155;
+    }
+    .sb-logo strong {
+      display: block;
+      font-size: 13px;
+      color: #f1f5f9;
+      line-height: 1.4;
+    }
+    .sb-logo small {
+      display: block;
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 3px;
+    }
+
+    .sb-nav {
+      flex: 1;
+      padding: 14px 8px;
+    }
+    .sb-nav a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 7px;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      margin-bottom: 3px;
+      transition: background .15s, color .15s;
+    }
+    .sb-nav a:hover  { background: #334155; color: #f1f5f9; }
+    .sb-nav a.active { background: #3b82f6; color: #fff; }
+
+    .sb-footer {
+      padding: 12px 14px;
+      border-top: 1px solid #334155;
+      font-size: 10px;
+      color: #475569;
+      line-height: 1.8;
+    }
+
+    /* ── MAIN ────────────────────────────────── */
+    #main {
+      flex: 1;                /* kalan tüm genişliği al */
+      min-width: 0;           /* flex overflow önle */
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── TOPBAR ──────────────────────────────── */
+    #topbar {
+      position: sticky;
+      top: 0;
+      height: 50px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      z-index: 10;
+    }
+    .topbar-title {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+    .topbar-date {
+      font-size: 11px;
+      background: #1e3a5f;
+      color: #60a5fa;
+      border: 1px solid #1d4ed8;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* ── SAYFA İÇERİĞİ ───────────────────────── */
+    #content {
+      flex: 1;
+      padding: 14px 16px;
+    }
+
+    /* ── KART ────────────────────────────────── */
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      color: #64748b;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #334155;
+    }
+
+    /* ── TAB BUTONLARI ───────────────────────── */
+    .tab-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tab-group input[type="radio"] { display: none; }
+    .tab-group label {
+      padding: 6px 16px;
+      border: 1.5px solid #334155;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #64748b;
+      background: #0f172a;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .tab-group label:hover { border-color: #3b82f6; color: #60a5fa; }
+    .tab-group input[type="radio"]:checked + label {
+      background: #3b82f6; border-color: #3b82f6; color: #fff;
+    }
+
+    /* ── DROPDOWN ────────────────────────────── */
+    .seg-select {
+      padding: 7px 32px 7px 10px;
+      border: 1.5px solid #334155;
+      border-radius: 6px;
+      font-size: 12.5px;
+      color: #cbd5e1;
+      background: #0f172a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 16 16'%3E%3Cpath fill='%2364748b' d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat right 10px center;
+      appearance: none; -webkit-appearance: none;
+      cursor: pointer; min-width: 220px;
+    }
+    .seg-select:focus { outline: none; border-color: #3b82f6; }
+
+    /* ── TABLO ───────────────────────────────── */
+    .tbl-wrap {
+      width: 100%;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    table.dtbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      table-layout: fixed;
+    }
+    table.dtbl thead th {
+      background: #0f172a;
+      padding: 7px 3px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #64748b;
+      border-bottom: 1px solid #334155;
+      text-align: center;
+      word-break: break-word;
+    }
+    table.dtbl tbody td {
+      padding: 5px 4px;
+      border-bottom: 1px solid #1e293b;
+      text-align: center;
+      vertical-align: middle;
+      color: #cbd5e1;
+    }
+    table.dtbl tbody tr:hover td { background: #1e3a5f; }
+    table.dtbl tbody tr:last-child td { border-bottom: none; }
+    table.dtbl tr.total-row td { font-weight: 700; background: #0f172a; color: #f1f5f9; }
+
+    /* kolon renkleri */
+    .col-neg { color: #f87171 !important; }
+    .col-pos { color: #4ade80 !important; }
+    .col-rat { color: #60a5fa !important; }
+    .col-mid { color: #a78bfa !important; }
+
+    /* ── GRAFİK ──────────────────────────────── */
+    #chart-box { width: 100%; min-height: 500px; display: block; }
+    .card-chart { padding-left: 0; padding-right: 0; }
+    .card-chart .card-title { padding-left: 16px; }
+
+    /* ── PLACEHOLDER ─────────────────────────── */
+    .placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 140px;
+      color: #475569;
+      font-size: 13px;
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sb-logo">
+    <strong>Override Dashboard</strong>
+    <small>Kurumsal Krediler Modelleme</small>
+  </div>
+  <nav class="sb-nav">
+    <a href="{{ url_for('index') }}"   class="{% if request.endpoint=='index'   %}active{% endif %}">&#8962; Home</a>
+    <a href="{{ url_for('musteri') }}" class="{% if request.endpoint=='musteri' %}active{% endif %}">&#128100; Musteri</a>
+    <a href="{{ url_for('grup') }}"    class="{% if request.endpoint=='grup'    %}active{% endif %}">&#128101; Grup</a>
+  </nav>
+  <div class="sb-footer">
+    {{ run_date }} &middot; Gunluk<br>
+    KurumsalKredilerModelleme
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <span class="topbar-title">{% block page_title %}Override Dashboard{% endblock %}</span>
+    <span class="topbar-date">{{ run_date }}</span>
+  </div>
+  <div id="content">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script>
+async function fetchData(view, tab, model) {
+  var wrap     = document.getElementById('table-wrap');
+  var chartBox = document.getElementById('chart-box');
+
+  if (wrap)     wrap.innerHTML = '<div class="placeholder">Yukleniyor...</div>';
+  if (chartBox) { if (window.Plotly) Plotly.purge(chartBox); chartBox.style.display = 'none'; }
+
+  try {
+    var res = await fetch('/api/data?' + new URLSearchParams({ view: view, tab: tab, model: model }));
+    var d   = await res.json();
+
+    /* TABLO */
+    if (wrap) {
+      if (!d.columns || !d.columns.length) {
+        wrap.innerHTML = '<div class="placeholder">Veri bulunamadi.</div>';
+      } else {
+        var NEG = ['-5','-4','-3','-2','-1'];
+        var POS = ['+0','+1','+2','+3','+4','+5'];
+        var MID = ['RATING_ADET','OVERRIDE_ADET','OVERRIDE_ORAN'];
+        function cls(c) {
+          if (NEG.indexOf(c)>=0) return 'col-neg';
+          if (POS.indexOf(c)>=0) return 'col-pos';
+          if (MID.indexOf(c)>=0) return 'col-mid';
+          if (c==='RATING')      return 'col-rat';
+          return '';
+        }
+        var h = '<div class="tbl-wrap"><table class="dtbl"><thead><tr>';
+        d.columns.forEach(function(c){ h += '<th class="'+cls(c)+'">'+c+'</th>'; });
+        h += '</tr></thead><tbody>';
+        d.table.forEach(function(row){
+          var tot = Object.values(row).some(function(v){ return String(v).toUpperCase()==='TOTAL'; });
+          h += '<tr'+(tot?' class="total-row"':')+'>';
+          d.columns.forEach(function(c){ h += '<td>'+(row[c]!=null?row[c]:'')+'</td>'; });
+          h += '</tr>';
+        });
+        h += '</tbody></table></div>';
+        wrap.innerHTML = h;
+      }
+    }
+
+    /* GRAFİK */
+    if (chartBox && d.figure && d.figure.data && d.figure.data.length) {
+      Plotly.react(chartBox, d.figure.data,
+        Object.assign({}, d.figure.layout||{}, {
+          autosize: true,
+          paper_bgcolor: '#1e293b',
+          plot_bgcolor:  '#0f172a',
+          font:          { color: '#94a3b8' },
+          margin: { t:70, r:40, b:60, l:60 }
+        }),
+        { responsive: true }
+      );
+      chartBox.style.display = 'block';
+    }
+  } catch(e) {
+    if (wrap) wrap.innerHTML = '<div class="placeholder" style="color:red;">Hata: '+e+'</div>';
+  }
+}
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

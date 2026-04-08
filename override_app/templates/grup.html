@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Grup — Override Dashboard{% endblock %}
+{% block page_title %}Grup{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-title">Görünüm Seçimi</div>
+
+  <!-- TAB BUTONLARI (Grup'ta Bölge yok) -->
+  <div class="tab-group" style="margin-bottom:16px;">
+    <input type="radio" name="tab" id="tab-rating"  value="Rating"  checked>
+    <label for="tab-rating">Rating</label>
+
+    <input type="radio" name="tab" id="tab-reasons" value="Reasons">
+    <label for="tab-reasons">Reasons</label>
+
+    <input type="radio" name="tab" id="tab-overall" value="Overall">
+    <label for="tab-overall">Overall</label>
+  </div>
+
+  <!-- SEGMENT DROPDOWN -->
+  <select id="seg-select" class="seg-select">
+    {% for seg in segments %}
+    <option value="{{ seg }}" {% if seg == 'TÜM MODELLER' %}selected{% endif %}>{{ seg }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+<!-- TABLO -->
+<div class="card">
+  <div class="card-title">Veri Tablosu</div>
+  <div id="table-wrap">
+    <div class="loading">Segment ve görünüm seçin, veri otomatik yüklenecek.</div>
+  </div>
+</div>
+
+<!-- GRAFİK -->
+<div class="card">
+  <div class="card-title">Grafik</div>
+  <div id="chart-box" style="display:none;"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var VIEW = 'grup';
+
+  function getTab() {
+    return document.querySelector('input[name="tab"]:checked').value;
+  }
+  function getModel() {
+    return document.getElementById('seg-select').value;
+  }
+
+  function load() {
+    fetchData(VIEW, getTab(), getModel());
+  }
+
+  document.querySelectorAll('input[name="tab"]').forEach(function(r) {
+    r.addEventListener('change', load);
+  });
+  document.getElementById('seg-select').addEventListener('change', load);
+
+  window.addEventListener('load', load);
+</script>
+{% endblock %}
