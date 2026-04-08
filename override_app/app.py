@@ -61,22 +61,20 @@ def api_data():
         df_total   = df[total_mask].copy()
         df_out     = pd.concat([df_plot, df_total], ignore_index=True)
 
-        # OVERRIDE_ORAN hesapla (%)
-        df_plot['OVERRIDE_ORAN'] = (
-            df_plot['OVERRIDE_ADET'] / df_plot['RATING_ADET'] * 100
-        ).round(1).astype(str) + '%'
+        # OVERRIDE_ORAN zaten SQL'den geliyor, formatlama yapılmıyor (zaten DECIMAL olarak hesaplanmış)
 
         # ── GRAFİK ──────────────────────────────────────────────
         fig = make_subplots(specs=[[{'secondary_y': True}]])
 
-        # Bar: OVERRIDE_ADET
+        # Bar: OVERRIDE_ADET (text olarak OVERRIDE_ORAN göster)
+        override_text = (df_plot['OVERRIDE_ORAN'].astype(str) + '%').values
         fig.add_trace(
             go.Bar(
                 x=df_plot['RATING'].astype(str),
                 y=df_plot['OVERRIDE_ADET'],
                 name='Override Adet',
                 marker_color='#3b82f6',
-                text=df_plot['OVERRIDE_ORAN'],
+                text=override_text,
                 textposition='outside',
             ),
             secondary_y=False
@@ -112,8 +110,8 @@ def api_data():
                          title_font=dict(color='#ffffff'), tickfont=dict(color='#94a3b8'))
 
         # ── TABLO ────────────────────────────────────────────────
-        # Gösterilecek kolonlar
-        show_cols = neg_cols + ['RATING', 'RATING_ADET', 'OVERRIDE_ADET'] + pos_cols
+        # Gösterilecek kolonlar (OVERRIDE_ORAN da dahil)
+        show_cols = neg_cols + ['RATING', 'RATING_ADET', 'OVERRIDE_ADET', 'OVERRIDE_ORAN'] + pos_cols
 
         # Sadece mevcut kolonları al
         show_cols = [c for c in show_cols if c in df_out.columns]
@@ -242,3 +240,5 @@ def api_data():
 
 if __name__ == '__main__':
     app.run(port=8888, debug=True)
+
+
