@@ -69,8 +69,8 @@
 {% block scripts %}
 <script>
   var VIEW     = 'musteri';
-  var NEG_COLS = ['-5','-4','-3','-2','-1','Negatif'];
-  var POS_COLS = ['+0','+1','+2','+3','+4','+5','Pozitif'];
+  var NEG_COLS = ['-5','-4','-3','-2','-1'];
+  var POS_COLS = ['+0','+1','+2','+3','+4','+5'];
   var MID_COLS = ['RATING_ADET','OVERRIDE_ADET','OVERRIDE_ORAN'];
   var BAR_COLS = NEG_COLS.concat(POS_COLS).concat(['RATING_ADET','OVERRIDE_ADET','NEGATIF_OVERRIDE_ORAN','POZITIF_OVERRIDE_ORAN','OVERRIDE_ORAN','AKIS_ADET']);
 
@@ -81,6 +81,7 @@
     if (col === 'RATING')                       return 'col-rat';
     if (col === 'NEGATIF_OVERRIDE_ORAN')        return 'col-neg';
     if (col === 'POZITIF_OVERRIDE_ORAN')        return 'col-pos';
+    if (col === 'OVERRIDE_ORAN')                return 'col-mid';
     return '';
   }
 
