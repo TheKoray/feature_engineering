@@ -6,9 +6,7 @@ from plotly.subplots import make_subplots
 import json
 from datetime import date
 
-from override import (getRatingData, getAllModelsRatingData,
-                      getReasonData, getAllModelsReasonData,
-                      getBolgeData, getAllModelsBolgeData)
+from override import (getRatingData, getReasonData, getBolgeData, getOverallData)
 
 app = Flask(__name__)
 
@@ -50,9 +48,7 @@ def api_data():
     musteri_or_grup = 'MUSTERI' if view == 'musteri' else 'GRUP'
 
     if tab == 'Rating':
-        if model != 'TÜM MODELLER':
-            return jsonify({'table': [], 'columns': [], 'figure': {}, 'msg': 'Bu segment henüz eklenmedi.'})
-        df = getAllModelsRatingData(musteri_or_grup=musteri_or_grup)
+        df = getRatingData(musteri_or_grup=musteri_or_grup, model_tipi=model)
 
         # Kolon isimleri: -5,-4,-3,-2,-1, RATING, RATING_ADET, OVERRIDE_ADET, +0,+1,+2,+3,+4,+5
         neg_cols = ['-5', '-4', '-3', '-2', '-1']
@@ -131,12 +127,9 @@ def api_data():
             'figure':  json.loads(fig.to_json()),
         })
 
-    # Diğer tab'lar henüz implemente edilmedi
     if tab == 'Reasons':
-        if model != 'TÜM MODELLER':
-            return jsonify({'table': [], 'columns': [], 'figure': {}, 'msg': 'Bu segment henüz eklenmedi.'})
         import plotly.express as px
-        df = getAllModelsReasonData(musteri_or_grup=musteri_or_grup)
+        df = getReasonData(musteri_or_grup=musteri_or_grup, model_tipi=model)
         df.columns = [c.strip().replace('"', '') for c in df.columns]
         df = df.rename(columns={'-': 'Negatif', '+': 'Pozitif'})
 
@@ -172,13 +165,9 @@ def api_data():
         })
 
     if tab == 'Bölge':
-        if model != 'TÜM MODELLER':
-            return jsonify({'table': [], 'columns': [], 'figure': {}, 'msg': 'Bu segment henüz eklenmedi.'})
         import plotly.express as px
-        df = getAllModelsBolgeData(musteri_or_grup=musteri_or_grup)
+        df = getBolgeData(musteri_or_grup=musteri_or_grup, model_tipi=model)
         df.columns = [c.strip() for c in df.columns]
-        # Encoding sorunundan gelen bozuk kolon adını düzelt
-        df.columns = [c.replace('NEGATÝF', 'NEGATIF') for c in df.columns]
 
         fig = px.bar(
             df,
@@ -198,6 +187,40 @@ def api_data():
             width = 1200,
             xaxis_title='Bölge',
             yaxis_title='Oran',
+            template='plotly_white',
+            legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1,
+                        font=dict(color='#94a3b8')),
+        )
+        fig.update_xaxes(title_font=dict(color='#ffffff'), tickfont=dict(color='#94a3b8'))
+        fig.update_yaxes(title_font=dict(color='#ffffff'), tickfont=dict(color='#94a3b8'))
+        fig.update_xaxes(type='category')
+
+        return jsonify({
+            'table':   df.to_dict(orient='records'),
+            'columns': list(df.columns),
+            'figure':  json.loads(fig.to_json()),
+        })
+
+    if tab == 'Overall':
+        import plotly.express as px
+        df = getOverallData(musteri_or_grup=musteri_or_grup, model_tipi=model)
+        if df.empty:
+            return jsonify({'table': [], 'columns': [], 'figure': {}, 'msg': 'Veri bulunamadı.'})
+
+        fig = px.bar(
+            df,
+            x=df.columns[0],
+            y=['NEGATIF_ADET', 'POZITIF_ADET'],
+            barmode='group',
+            color_discrete_map={'NEGATIF_ADET': '#dc2626', 'POZITIF_ADET': '#16a34a'},
+            text_auto=True,
+        )
+        fig.update_traces(textfont_size=11, textposition='outside', cliponaxis=False)
+        fig.update_layout(
+            title=dict(text='Genel Bakış', x=0.5, font=dict(size=18, color='#ffffff')),
+            width=1200,
+            xaxis_title='Özet',
+            yaxis_title='Adet',
             template='plotly_white',
             legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1,
                         font=dict(color='#94a3b8')),
