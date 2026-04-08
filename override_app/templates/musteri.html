@@ -156,6 +156,12 @@
 
         var tdStyle = bgColor ? ' style="background:' + bgColor + ';font-weight:600;"' : '';
 
+        // OVERRIDE_REASON bold yap
+        if (c === 'OVERRIDE_REASON' && val) {
+          tdStyle = ' style="font-weight:700;"';
+          val = '<strong>' + val + '</strong>';
+        }
+
         if (hasBar && !bgColor) {
           /* Normal mini bar (rating, reasons vb.) */
           var pct = Math.round((num / maxes[c]) * 90);
