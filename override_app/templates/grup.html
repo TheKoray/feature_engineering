@@ -78,10 +78,14 @@
     if (MID_COLS.indexOf(col) >= 0) return 'col-mid';
     if (col === 'RATING')                       return 'col-rat';
     if (col === 'BOLGE')                        return 'col-rat';
+    if (col === 'OVERRIDE_REASON')              return 'col-rat';
     if (col === 'NEGATIF_OVERRIDE_ORAN')        return 'col-neg';
     if (col === 'POZITIF_OVERRIDE_ORAN')        return 'col-pos';
+    if (col === 'NEGATIF')                      return 'col-neg';
+    if (col === 'POZİTİF')                      return 'col-pos';
     if (col === 'OVERRIDE_ORAN')                return 'col-mid';
     if (col === 'AKIS_ADET')                    return 'col-mid';
+    if (col === 'OVERRIDE_ADET')                return 'col-mid';
     return '';
   }
 
@@ -110,6 +114,8 @@
     'POZITIF_OVERRIDE_ORAN': { r:22,  g:163, b:74  },
     'Negatif':               { r:220, g:38,  b:38  },
     'Pozitif':               { r:22,  g:163, b:74  },
+    'NEGATIF':               { r:220, g:38,  b:38  },
+    'POZİTİF':               { r:22,  g:163, b:74  },
   };
 
   function scaleColor(col, val, max) {

@@ -276,25 +276,56 @@ async function fetchData(view, tab, model) {
         var NEG = ['-5','-4','-3','-2','-1'];
         var POS = ['+0','+1','+2','+3','+4','+5'];
         var MID = ['RATING_ADET','OVERRIDE_ADET','OVERRIDE_ORAN','AKIS_ADET'];
+        var SCALE_COLS_BASE = {
+          'NEGATIF_OVERRIDE_ORAN': { r:220, g:38,  b:38  },
+          'POZITIF_OVERRIDE_ORAN': { r:22,  g:163, b:74  },
+          'NEGATIF':               { r:220, g:38,  b:38  },
+          'POZİTİF':               { r:22,  g:163, b:74  },
+        };
         function cls(c) {
           if (NEG.indexOf(c)>=0) return 'col-neg';
           if (POS.indexOf(c)>=0) return 'col-pos';
           if (MID.indexOf(c)>=0) return 'col-mid';
           if (c==='RATING')           return 'col-rat';
           if (c==='BOLGE')            return 'col-rat';
+          if (c==='OVERRIDE_REASON')  return 'col-rat';
           if (c==='NEGATIF_OVERRIDE_ORAN') return 'col-neg';
           if (c==='POZITIF_OVERRIDE_ORAN') return 'col-pos';
+          if (c==='NEGATIF')          return 'col-neg';
+          if (c==='POZİTİF')          return 'col-pos';
           if (c==='OVERRIDE_ORAN')    return 'col-mid';
           if (c==='AKIS_ADET')        return 'col-mid';
+          if (c==='OVERRIDE_ADET')    return 'col-mid';
           return '';
         }
+        function scaleColor(col, val, max) {
+          var c = SCALE_COLS_BASE[col];
+          if (!c || max === 0) return null;
+          var intensity = val / max;
+          var alpha = 0.12 + intensity * 0.75;
+          return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + alpha.toFixed(2) + ')';
+        }
+        var maxes = {};
+        Object.keys(SCALE_COLS_BASE).forEach(function(c) {
+          var vals = d.table
+            .filter(function(r){ return !Object.values(r).some(function(v){ return String(v).toUpperCase()==='TOTAL'; }); })
+            .map(function(r){ return parseFloat(r[c]); })
+            .filter(function(v){ return !isNaN(v); });
+          maxes[c] = vals.length ? Math.max.apply(null, vals) : 1;
+        });
         var h = '<div class="tbl-wrap"><table class="dtbl"><thead><tr>';
         d.columns.forEach(function(c){ h += '<th class="'+cls(c)+'">'+c+'</th>'; });
         h += '</tr></thead><tbody>';
         d.table.forEach(function(row){
           var tot = Object.values(row).some(function(v){ return String(v).toUpperCase()==='TOTAL'; });
           h += '<tr'+(tot?' class="total-row"':')+'>';
-          d.columns.forEach(function(c){ h += '<td>'+(row[c]!=null?row[c]:'')+'</td>'; });
+          d.columns.forEach(function(c){
+            var val = row[c]!=null?row[c]:'';
+            var num = parseFloat(val);
+            var bgColor = (!tot && SCALE_COLS_BASE[c] && !isNaN(num)) ? scaleColor(c, num, maxes[c]) : null;
+            var tdStyle = bgColor ? ' style="background:'+bgColor+';font-weight:600;"' : '';
+            h += '<td'+tdStyle+'>'+ val +'</td>';
+          });
           h += '</tr>';
         });
         h += '</tbody></table></div>';
