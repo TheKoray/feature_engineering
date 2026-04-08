@@ -275,15 +275,17 @@ async function fetchData(view, tab, model) {
       } else {
         var NEG = ['-5','-4','-3','-2','-1'];
         var POS = ['+0','+1','+2','+3','+4','+5'];
-        var MID = ['RATING_ADET','OVERRIDE_ADET','OVERRIDE_ORAN'];
+        var MID = ['RATING_ADET','OVERRIDE_ADET','OVERRIDE_ORAN','AKIS_ADET'];
         function cls(c) {
           if (NEG.indexOf(c)>=0) return 'col-neg';
           if (POS.indexOf(c)>=0) return 'col-pos';
           if (MID.indexOf(c)>=0) return 'col-mid';
           if (c==='RATING')           return 'col-rat';
+          if (c==='BOLGE')            return 'col-rat';
           if (c==='NEGATIF_OVERRIDE_ORAN') return 'col-neg';
           if (c==='POZITIF_OVERRIDE_ORAN') return 'col-pos';
           if (c==='OVERRIDE_ORAN')    return 'col-mid';
+          if (c==='AKIS_ADET')        return 'col-mid';
           return '';
         }
         var h = '<div class="tbl-wrap"><table class="dtbl"><thead><tr>';

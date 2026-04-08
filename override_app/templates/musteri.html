@@ -79,9 +79,11 @@
     if (POS_COLS.indexOf(col) >= 0) return 'col-pos';
     if (MID_COLS.indexOf(col) >= 0) return 'col-mid';
     if (col === 'RATING')                       return 'col-rat';
+    if (col === 'BOLGE')                        return 'col-rat';
     if (col === 'NEGATIF_OVERRIDE_ORAN')        return 'col-neg';
     if (col === 'POZITIF_OVERRIDE_ORAN')        return 'col-pos';
     if (col === 'OVERRIDE_ORAN')                return 'col-mid';
+    if (col === 'AKIS_ADET')                    return 'col-mid';
     return '';
   }
 
