@@ -182,16 +182,19 @@ def api_data():
         fig.update_traces(textfont_size=11, textposition='outside', cliponaxis=False)
         fig.update_layout(
             title=dict(text='Bölgelere Göre Override Dağılımı', x=0.5, font=dict(size=18, color='#ffffff')),
-            width = 1200,
+            width=1200,
             xaxis_title='Bölge',
-            yaxis_title='Oran',
+            yaxis_title='Oran (%)',
             template='plotly_white',
+            paper_bgcolor='#1e293b',
+            plot_bgcolor='#0f172a',
+            font=dict(color='#94a3b8'),
             legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1,
                         font=dict(color='#94a3b8')),
+            margin=dict(t=80, r=20, b=60, l=60),
         )
-        fig.update_xaxes(title_font=dict(color='#ffffff'), tickfont=dict(color='#94a3b8'))
-        fig.update_yaxes(title_font=dict(color='#ffffff'), tickfont=dict(color='#94a3b8'))
-        fig.update_xaxes(type='category')
+        fig.update_xaxes(title_text='Bölge', title_font=dict(color='#ffffff'), tickfont=dict(color='#94a3b8'), type='category')
+        fig.update_yaxes(title_text='Oran (%)', title_font=dict(color='#ffffff'), tickfont=dict(color='#94a3b8'))
 
         return jsonify({
             'table':   df.to_dict(orient='records'),

@@ -156,8 +156,8 @@
 
         var tdStyle = bgColor ? ' style="background:' + bgColor + ';font-weight:600;"' : '';
 
-        // OVERRIDE_REASON bold yap
-        if (c === 'OVERRIDE_REASON' && val) {
+        // OVERRIDE_REASON ve BOLGE bold yap
+        if ((c === 'OVERRIDE_REASON' || c === 'BOLGE') && val) {
           tdStyle = ' style="font-weight:700;"';
           val = '<strong>' + val + '</strong>';
         }
