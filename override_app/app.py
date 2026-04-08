@@ -129,7 +129,7 @@ def api_data():
         import plotly.express as px
         df = getReasonData(musteri_or_grup=musteri_or_grup, model_tipi=model)
         df.columns = [c.strip().replace('"', '') for c in df.columns]
-        df = df.rename(columns={'-': 'Negatif', '+': 'Pozitif'})
+        df = df.rename(columns={'-': 'NEGATIF', '+': 'POZITIF'})
 
         total_mask = df['OVERRIDE_REASON'].astype(str).str.upper() == 'TOTAL'
         df_plot    = df[~total_mask].copy()
@@ -137,9 +137,9 @@ def api_data():
         fig = px.bar(
             df_plot,
             x='OVERRIDE_REASON',
-            y=['Negatif', 'Pozitif'],
+            y=['NEGATIF', 'POZITIF'],
             barmode='group',
-            color_discrete_map={'Negatif': '#dc2626', 'Pozitif': '#16a34a'},
+            color_discrete_map={'NEGATIF': '#dc2626', 'POZITIF': '#16a34a'},
             text_auto=True,
         )
         fig.update_traces(textfont_size=11, textposition='outside', cliponaxis=False)
@@ -166,6 +166,11 @@ def api_data():
         import plotly.express as px
         df = getBolgeData(musteri_or_grup=musteri_or_grup, model_tipi=model)
         df.columns = [c.strip() for c in df.columns]
+
+        # Yüzdelik değerleri sayıya çevir (string "61.3%" → float 61.3)
+        for col in ['NEGATIF_OVERRIDE_ORAN', 'POZITIF_OVERRIDE_ORAN', 'OVERRIDE_ORAN']:
+            if col in df.columns:
+                df[col] = df[col].astype(str).str.replace('%', '').astype(float)
 
         fig = px.bar(
             df,
