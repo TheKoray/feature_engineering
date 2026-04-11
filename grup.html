@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}Grup — Override Dashboard{% endblock %}
+{% block page_title %}Grup{% endblock %}
+
+{% block head %}
+<style>
+  /* Kolon başlık renkleri */
+  .col-neg { color: #dc2626 !important; }
+  .col-pos { color: #16a34a !important; }
+  .col-rat { color: #2563eb !important; }
+  .col-mid { color: #7c3aed !important; }
+
+  /* Mini bar — değerin üstünde ince bir şerit */
+  .bar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .mini-bar {
+    height: 5px;
+    border-radius: 3px;
+    min-width: 2px;
+    transition: width .3s ease;
+  }
+  .bar-neg-color { background: rgba(248,113,113,0.6); }
+  .bar-pos-color { background: rgba(74,222,128,0.6);  }
+  .bar-mid-color { background: rgba(167,139,250,0.6); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div style="flex: 1;">
+      <div class="card-title">Görünüm Seçimi</div>
+      <div class="tab-group" style="margin-bottom:14px;">
+        <input type="radio" name="tab" id="tab-rating"  value="Rating">
+        <label for="tab-rating">Rating</label>
+        <input type="radio" name="tab" id="tab-reasons" value="Reasons">
+        <label for="tab-reasons">Reasons</label>
+        <input type="radio" name="tab" id="tab-overall" value="Overall">
+        <label for="tab-overall">Overall</label>
+      </div>
+      <select id="seg-select" class="seg-select">
+        <option value="" disabled selected>Segment Seçiniz</option>
+        {% for seg in segments %}
+        <option value="{{ seg }}">{{ seg }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button id="export-btn" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; margin-top: 28px;">📥 Excel'e Indir</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">Veri Tablosu</div>
+  <div id="table-wrap">
+    <div class="placeholder">Segment ve görünüm seçin, veri otomatik yüklenecek.</div>
+  </div>
+</div>
+
+<div class="card card-chart">
+  <div class="card-title">Override Adet Dağılımı</div>
+  <div id="chart-box"></div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var VIEW     = 'grup';
+  var NEG_COLS = ['-5','-4','-3','-2','-1'];
+  var POS_COLS = ['+0','+1','+2','+3','+4','+5'];
+  var MID_COLS = ['RATING_ADET','OVERRIDE_ADET','OVERRIDE_ORAN'];
+  var BAR_COLS = NEG_COLS.concat(POS_COLS).concat(['RATING_ADET','OVERRIDE_ADET','NEGATIF_OVERRIDE_ORAN','POZITIF_OVERRIDE_ORAN','OVERRIDE_ORAN','AKIS_ADET','NEGATIF','POZITIF']);
+
+  function colClass(col) {
+    if (NEG_COLS.indexOf(col) >= 0) return 'col-neg';
+    if (POS_COLS.indexOf(col) >= 0) return 'col-pos';
+    if (MID_COLS.indexOf(col) >= 0) return 'col-mid';
+    if (col === 'RATING')                       return 'col-rat';
+    if (col === 'BOLGE')                        return 'col-rat';
+    if (col === 'OVERRIDE_REASON')              return 'col-rat';
+    if (col === 'NEGATIF_OVERRIDE_ORAN')        return 'col-neg';
+    if (col === 'POZITIF_OVERRIDE_ORAN')        return 'col-pos';
+    if (col === 'NEGATIF')                      return 'col-neg';
+    if (col === 'POZITIF')                      return 'col-pos';
+    if (col === 'OVERRIDE_ORAN')                return 'col-mid';
+    if (col === 'AKIS_ADET')                    return 'col-mid';
+    if (col === 'OVERRIDE_ADET')                return 'col-mid';
+    return '';
+  }
+
+  function barColor(col) {
+    if (NEG_COLS.indexOf(col) >= 0) return 'bar-neg-color';
+    if (POS_COLS.indexOf(col) >= 0) return 'bar-pos-color';
+    return 'bar-mid-color';
+  }
+
+  /* TOTAL satırı hariç her kolonun max değeri */
+  function getMaxes(table) {
+    var maxes = {};
+    BAR_COLS.forEach(function(c) {
+      var vals = table
+        .filter(function(r){ return !Object.values(r).some(function(v){ return String(v).toUpperCase()==='TOTAL'; }); })
+        .map(function(r){ return parseFloat(r[c]); })
+        .filter(function(v){ return !isNaN(v); });
+      maxes[c] = vals.length ? Math.max.apply(null, vals) : 1;
+    });
+    return maxes;
+  }
+
+  /* Değere göre renk skalası: 0→beyaz, max→tam renk */
+  var SCALE_COLS = {
+    'NEGATIF_OVERRIDE_ORAN': { r:220, g:38,  b:38  },
+    'POZITIF_OVERRIDE_ORAN': { r:22,  g:163, b:74  },
+    'Negatif':               { r:220, g:38,  b:38  },
+    'Pozitif':               { r:22,  g:163, b:74  },
+    'NEGATIF':               { r:220, g:38,  b:38  },
+    'POZITIF':               { r:22,  g:163, b:74  },
+  };
+
+  function scaleColor(col, val, max) {
+    var c = SCALE_COLS[col];
+    if (!c || max === 0) return null;
+    var intensity = val / max;               /* 0..1 */
+    var alpha     = 0.12 + intensity * 0.75; /* 0.12 (çok açık) → 0.87 (koyu) */
+    return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + alpha.toFixed(2) + ')';
+  }
+
+  function renderTable(data) {
+    var wrap = document.getElementById('table-wrap');
+    if (!data.columns || !data.columns.length) {
+      wrap.innerHTML = '<div class="placeholder">Veri bulunamadı.</div>';
+      return;
+    }
+
+    var maxes = getMaxes(data.table);
+
+    var h = '<div class="tbl-wrap"><table class="dtbl"><thead><tr>';
+    data.columns.forEach(function(c) {
+      h += '<th class="' + colClass(c) + '">' + c + '</th>';
+    });
+    h += '</tr></thead><tbody>';
+
+    data.table.forEach(function(row) {
+      var isTotal = Object.values(row).some(function(v){ return String(v).toUpperCase() === 'TOTAL'; });
+      h += '<tr' + (isTotal ? ' class="total-row"' : '') + '>';
+
+      data.columns.forEach(function(c) {
+        var val    = row[c] != null ? row[c] : '';
+        var num    = parseFloat(val);
+        var hasBar = !isTotal && BAR_COLS.indexOf(c) >= 0 && !isNaN(num) && maxes[c] > 0;
+        var bgColor = (!isTotal && SCALE_COLS[c] && !isNaN(num))
+                      ? scaleColor(c, num, maxes[c]) : null;
+
+        var tdStyle = bgColor ? ' style="background:' + bgColor + ';font-weight:600;"' : '';
+
+        // OVERRIDE_REASON ve BOLGE bold yap
+        if ((c === 'OVERRIDE_REASON' || c === 'BOLGE') && val) {
+          tdStyle = ' style="font-weight:700;"';
+          val = '<strong>' + val + '</strong>';
+        }
+
+        if (hasBar && !bgColor) {
+          /* Normal mini bar (rating, reasons vb.) */
+          var pct = Math.round((num / maxes[c]) * 90);
+          h += '<td>'
+            + '<div class="bar-wrap">'
+            + '<div class="mini-bar ' + barColor(c) + '" style="width:' + pct + '%"></div>'
+            + '<span>' + val + '</span>'
+            + '</div>'
+            + '</td>';
+        } else {
+          /* Color scale hücresi veya düz hücre */
+          h += '<td' + tdStyle + '>' + val + '</td>';
+        }
+      });
+      h += '</tr>';
+    });
+
+    h += '</tbody></table></div>';
+    wrap.innerHTML = h;
+  }
+
+  function getTab() {
+    var el = document.querySelector('input[name="tab"]:checked');
+    return el ? el.value : null;
+  }
+  function getModel() { return document.getElementById('seg-select').value; }
+
+  async function load() {
+    var tab   = getTab();
+    var model = getModel();
+    if (!tab || !model) return;
+
+    var wrap     = document.getElementById('table-wrap');
+    var chartBox = document.getElementById('chart-box');
+
+    wrap.innerHTML = '<div class="placeholder">Yükleniyor…</div>';
+    chartBox.style.display = 'none';
+    if (window.Plotly) Plotly.purge(chartBox);
+
+    try {
+      var res = await fetch('/api/data?' + new URLSearchParams({ view: VIEW, tab: tab, model: model }));
+      var d   = await res.json();
+
+      if (d.msg) {
+        wrap.innerHTML = '<div class="placeholder">' + d.msg + '</div>';
+        return;
+      }
+
+      renderTable(d);
+
+      if (d.figure && d.figure.data && d.figure.data.length) {
+        Plotly.react(
+          chartBox,
+          d.figure.data,
+          Object.assign({}, d.figure.layout || {}, {
+            autosize:      true,
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor:  '#fafafa',
+            margin:        { t: 60, r: 10, b: 50, l: 55 },
+          }),
+          { responsive: true }
+        );
+        chartBox.style.display = 'block';
+      }
+    } catch(err) {
+      wrap.innerHTML = '<div class="placeholder" style="color:#dc2626;">Hata: ' + err + '</div>';
+    }
+  }
+
+  document.querySelectorAll('input[name="tab"]').forEach(function(r) {
+    r.addEventListener('change', load);
+  });
+  document.getElementById('seg-select').addEventListener('change', load);
+
+  // Excel Export
+  var lastTableData = null;
+  var lastColumns = null;
+  var lastFigure = null;
+
+  // load() fonksiyonunun sonunda veri kalsın
+  var originalLoad = window.load;
+  window.load = function() {
+    originalLoad();
+    // Veriler yüklendikten sonra Excel butonunu aktif et
+    setTimeout(function() {
+      if (document.querySelector('.dtbl')) {
+        var tab = getTab();
+        var model = getModel();
+        var rows = Array.from(document.querySelectorAll('.dtbl tbody tr')).map(function(tr) {
+          var obj = {};
+          Array.from(tr.cells).forEach(function(td, idx) {
+            obj[window.currentColumns[idx]] = td.textContent.trim();
+          });
+          return obj;
+        });
+        lastTableData = rows;
+        lastColumns = window.currentColumns;
+        lastFigure = window.currentFigure;
+      }
+    }, 100);
+  };
+
+  // Load fonksiyonunu override et
+  var oldFetch = window.fetch;
+  window.fetch = function(url, opts) {
+    if (url.includes('/api/data')) {
+      return oldFetch.apply(this, arguments).then(function(res) {
+        return res.json().then(function(d) {
+          window.currentColumns = d.columns;
+          window.currentFigure = d.figure;
+          return new Response(JSON.stringify(d));
+        });
+      });
+    }
+    return oldFetch.apply(this, arguments);
+  };
+
+  document.getElementById('export-btn').addEventListener('click', function() {
+    var tab = getTab();
+    var model = getModel();
+    if (!tab || !model) {
+      alert('Lütfen tab ve segment seçiniz');
+      return;
+    }
+    if (!lastTableData || !lastColumns) {
+      alert('Veri bulunamadı');
+      return;
+    }
+    fetch('/export/excel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        view: VIEW,
+        tab: tab,
+        model: model,
+        table: lastTableData,
+        columns: lastColumns,
+        figure: lastFigure
+      })
+    }).then(r => r.json()).then(d => {
+      if (d.success) {
+        alert('✅ ' + d.message);
+      } else {
+        alert('❌ ' + d.message);
+      }
+    }).catch(e => alert('Hata: ' + e));
+  });
+</script>
+{% endblock %}
