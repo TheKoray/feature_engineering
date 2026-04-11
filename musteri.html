@@ -53,7 +53,7 @@
         {% endfor %}
       </select>
     </div>
-    <button id="export-btn" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; margin-top: 28px;">📥 Excel'e Indir</button>
+    <button id="export-btn" style="padding: 6px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; margin-top: 28px; font-size: 13px;">📥 Indir</button>
   </div>
 </div>
 
@@ -246,42 +246,30 @@ var BAR_COLS = NEG_COLS.concat(POS_COLS).concat(['RATING_ADET','OVERRIDE_ADET','
   var lastColumns = null;
   var lastFigure = null;
 
-  // load() fonksiyonunun sonunda veri kalsın
-  var originalLoad = window.load;
-  window.load = function() {
-    originalLoad();
-    // Veriler yüklendikten sonra Excel butonunu aktif et
-    setTimeout(function() {
-      if (document.querySelector('.dtbl')) {
-        var tab = getTab();
-        var model = getModel();
-        var rows = Array.from(document.querySelectorAll('.dtbl tbody tr')).map(function(tr) {
-          var obj = {};
-          Array.from(tr.cells).forEach(function(td, idx) {
+  // Tablo verilerini yakala
+  function captureTableData() {
+    if (document.querySelector('.dtbl') && window.currentColumns) {
+      var rows = Array.from(document.querySelectorAll('.dtbl tbody tr')).map(function(tr) {
+        var obj = {};
+        Array.from(tr.cells).forEach(function(td, idx) {
+          if (window.currentColumns[idx]) {
             obj[window.currentColumns[idx]] = td.textContent.trim();
-          });
-          return obj;
+          }
         });
-        lastTableData = rows;
-        lastColumns = window.currentColumns;
-        lastFigure = window.currentFigure;
-      }
-    }, 100);
-  };
-
-  // Load fonksiyonunu override et
-  var oldFetch = window.fetch;
-  window.fetch = function(url, opts) {
-    if (url.includes('/api/data')) {
-      return oldFetch.apply(this, arguments).then(function(res) {
-        return res.json().then(function(d) {
-          window.currentColumns = d.columns;
-          window.currentFigure = d.figure;
-          return new Response(JSON.stringify(d));
-        });
+        return obj;
       });
+      lastTableData = rows;
+      lastColumns = window.currentColumns;
+      lastFigure = window.currentFigure;
     }
-    return oldFetch.apply(this, arguments);
+  }
+
+  // renderTable fonksiyonunu override et
+  var originalRenderTable = renderTable;
+  renderTable = function(data) {
+    originalRenderTable(data);
+    window.currentColumns = data.columns;
+    setTimeout(captureTableData, 50);
   };
 
   document.getElementById('export-btn').addEventListener('click', function() {
