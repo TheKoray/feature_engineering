@@ -261,6 +261,52 @@ def api_data():
 # EXCEL EXPORT
 # ---------------------------------------------------------------------------
 
+def get_scale_color(col_name, value, max_val):
+    """Renk scale'i hesapla (JavaScript'teki scaleColor fonksiyonunun Python versiyonu)"""
+    SCALE_COLS = {
+        'NEGATIF_OVERRIDE_ORAN': (220, 38, 38),
+        'POZITIF_OVERRIDE_ORAN': (22, 163, 74),
+        'Negatif': (220, 38, 38),
+        'Pozitif': (22, 163, 74),
+        'NEGATIF': (220, 38, 38),
+        'POZITIF': (22, 163, 74),
+    }
+
+    if col_name not in SCALE_COLS or max_val == 0:
+        return None
+
+    r, g, b = SCALE_COLS[col_name]
+    intensity = float(value) / float(max_val)  # 0..1
+    alpha = 0.12 + intensity * 0.75  # 0.12 (açık) → 0.87 (koyu)
+
+    # Alpha'yı 0-255 aralığına çevir ve hex renk oluştur
+    alpha_255 = int(alpha * 255)
+    return f"{alpha_255:02X}{r:02X}{g:02X}{b:02X}"
+
+
+def get_max_values(table_data, columns):
+    """Her kolon için max değeri hesapla (TOTAL satırları hariç)"""
+    maxes = {}
+    scale_cols = ['NEGATIF_OVERRIDE_ORAN', 'POZITIF_OVERRIDE_ORAN', 'Negatif', 'Pozitif', 'NEGATIF', 'POZITIF']
+
+    for col in columns:
+        if col in scale_cols:
+            vals = []
+            for row in table_data:
+                # TOTAL satırını atla
+                if any(str(v).upper() == 'TOTAL' for v in row.values()):
+                    continue
+                try:
+                    val = float(row.get(col, 0))
+                    if not pd.isna(val):
+                        vals.append(val)
+                except (ValueError, TypeError):
+                    pass
+            maxes[col] = max(vals) if vals else 1
+
+    return maxes
+
+
 @app.route('/export/excel', methods=['POST'])
 def export_excel():
     """Tablo ve grafiği Excel'e kaydet"""
@@ -282,17 +328,34 @@ def export_excel():
         ws['A1'] = f"{tab} Tablosu - {model}"
         ws['A1'].font = Font(bold=True, size=12)
 
+        # Max değerleri hesapla (renk scale için)
+        maxes = get_max_values(table_data, columns)
+
         # Kolon başlıkları
         for col_idx, col_name in enumerate(columns, 1):
             cell = ws.cell(row=3, column=col_idx, value=col_name)
             cell.font = Font(bold=True, color="FFFFFF")
             cell.fill = PatternFill(start_color="1e293b", end_color="1e293b", fill_type="solid")
 
-        # Tablo verileri
+        # Tablo verileri (renk scale'i ile)
         for row_idx, row_data in enumerate(table_data, 4):
+            # TOTAL satırı mı kontrol et
+            is_total = any(str(v).upper() == 'TOTAL' for v in row_data.values())
+
             for col_idx, col_name in enumerate(columns, 1):
                 value = row_data.get(col_name, '')
-                ws.cell(row=row_idx, column=col_idx, value=value)
+                cell = ws.cell(row=row_idx, column=col_idx, value=value)
+
+                # TOTAL satırı değilse renk scale'i uygula
+                if not is_total and col_name in maxes:
+                    try:
+                        num_val = float(value)
+                        color_hex = get_scale_color(col_name, num_val, maxes[col_name])
+                        if color_hex:
+                            cell.fill = PatternFill(start_color=color_hex, end_color=color_hex, fill_type="solid")
+                            cell.font = Font(color="FFFFFF", bold=True)
+                    except (ValueError, TypeError):
+                        pass
 
         # Kolon genişliği
         for col_idx in range(1, len(columns) + 1):
@@ -304,15 +367,22 @@ def export_excel():
                 import plotly.graph_objects as go
                 fig = go.Figure(figure_json)
 
+                # Dark theme ayarla
+                fig.update_layout(
+                    paper_bgcolor='rgba(30, 41, 59, 1)',
+                    plot_bgcolor='rgba(15, 23, 42, 1)',
+                    font=dict(color='rgba(148, 163, 184, 1)'),
+                )
+
                 # Grafik dosyası oluştur
                 chart_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp_chart.png')
-                fig.write_image(chart_path, width=800, height=500)
+                fig.write_image(chart_path, width=1000, height=600)
 
-                # Excel'e grafik ekle
+                # Excel'e grafik ekle (tablodan sonra)
                 img = XLImage(chart_path)
-                img.width = 600
+                img.width = 650
                 img.height = 400
-                ws.add_image(img, f'H3')
+                ws.add_image(img, 'A' + str(len(table_data) + 8))
 
                 # Temp dosya sil
                 if os.path.exists(chart_path):
